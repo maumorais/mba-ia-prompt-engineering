@@ -189,6 +189,10 @@ def test_prompt_rendering_with_test_cases(all_test_cases):
         if invalid_vars:
             print(f"\nWarning: Case {case_id} provides unused variables: {invalid_vars}")
 
+        missing_vars = required_vars - provided_vars
+        if missing_vars:
+            pytest.fail(f"Case {case_id} missing required variables: {missing_vars}")
+
         render_vars = {var: test_case['inputs'].get(var, '') for var in required_vars}
 
         try:
