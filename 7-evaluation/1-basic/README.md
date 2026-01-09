@@ -280,6 +280,7 @@ cp .env.example .env
 source venv/bin/activate
 
 # Executar exemplos na ordem
+python upload_dataset.py  # Carrega o dataset (necessário na 1ª vez)
 python 1-format-eval.py
 python 2-criteria-binary-eval.py
 python 3-criteria-score-eval.py

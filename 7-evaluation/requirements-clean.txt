@@ -1,0 +1,10 @@
+langchain
+langchain-community
+langchain-openai
+langchain-google-genai
+langsmith
+langfuse
+openai
+python-dotenv
+jsonschema
+pytest

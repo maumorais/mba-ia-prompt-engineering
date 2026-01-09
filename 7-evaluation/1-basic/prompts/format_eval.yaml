@@ -6,7 +6,7 @@ template: |
 
   Review the code below and describe issues.
 
-  Respond ONLY in JSON format:
+  Respond ONLY in RAW JSON format, **NEVER USE MARKDOWN**:
 
   {{
     "findings": [

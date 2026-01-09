@@ -3,11 +3,17 @@ Binary criteria evaluation: Pass/Fail evaluation using LLM judges.
 
 Demonstrates binary evaluators (0 or 1) for quick yes/no validation.
 """
+#Incluindo a pasta superior no caminho do python, para permitir a importação de Shared
+import sys
+import os
+# Adiciona o diretório pai (7-evaluation) ao caminho de busca do Python
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from langsmith import evaluate
 from langsmith.evaluation import LangChainStringEvaluator
 from pathlib import Path
 
-from shared.clients import get_openai_client
+from shared.clients import get_llm_client
 from shared.prompts import load_yaml_prompt, execute_text_prompt
 from shared.evaluators import prepare_with_input, prepare_with_reference
 
@@ -16,13 +22,14 @@ DATASET_NAME = "evaluation_basic_dataset"
 BASE_DIR = Path(__file__).parent
 
 # Setup
-oai_client = get_openai_client()
+llm_client = get_llm_client()
+
 prompt = load_yaml_prompt("criteria_eval.yaml")
 
 
 def run_criteria_evaluation(inputs: dict) -> dict:
     """Target function for evaluate()."""
-    return execute_text_prompt(prompt, inputs, oai_client, input_key="code")
+    return execute_text_prompt(prompt, inputs, llm_client, input_key="code")
 
 
 # BINARY EVALUATORS: criteria (0 or 1)
@@ -45,21 +52,24 @@ evaluators = [
     LangChainStringEvaluator(
         "criteria",
         config={"criteria": "conciseness"},
-        prepare_data=prepare_with_input
+        prepare_data=prepare_with_input,
+        llm=llm_client
     ),
 
     # Binary: Is helpful? (0=no, 1=yes)
     LangChainStringEvaluator(
         "criteria",
         config={"criteria": "helpfulness"},
-        prepare_data=prepare_with_input
+        prepare_data=prepare_with_input,
+        llm=llm_client
     ),
 
     # Binary with reference: Is correct compared to expected? (0=no, 1=yes)
     LangChainStringEvaluator(
         "labeled_criteria",
         config={"criteria": "correctness"},
-        prepare_data=prepare_with_reference
+        prepare_data=prepare_with_reference,
+        llm=llm_client
     ),
 ]
 

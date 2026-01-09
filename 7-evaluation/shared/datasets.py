@@ -42,7 +42,7 @@ def upload_langsmith_dataset(
         ... )
     """
     # Load examples from JSONL
-    with open(dataset_file, 'r') as f:
+    with open(dataset_file, 'r', encoding='utf-8') as f:
         examples = [json.loads(line) for line in f if line.strip()]
 
     # Try to read existing dataset, or create new one
@@ -109,7 +109,7 @@ def upload_langfuse_dataset(
         ... )
     """
     # Load examples from JSONL
-    with open(dataset_file, 'r') as f:
+    with open(dataset_file, 'r', encoding='utf-8') as f:
         examples = [json.loads(line) for line in f if line.strip()]
 
     # Try to create dataset (may already exist)

@@ -3,11 +3,17 @@ Custom criteria evaluation: Demonstrating domain-specific evaluation criteria.
 
 Shows how to define custom criteria beyond the 14 built-in options.
 """
+#Incluindo a pasta superior no caminho do python, para permitir a importação de Shared
+import sys
+import os
+# Adiciona o diretório pai (7-evaluation) ao caminho de busca do Python
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from langsmith import evaluate
 from langsmith.evaluation import LangChainStringEvaluator
 from pathlib import Path
 
-from shared.clients import get_openai_client
+from shared.clients import get_llm_client
 from shared.prompts import load_yaml_prompt, execute_text_prompt
 from shared.evaluators import prepare_with_input
 
@@ -16,13 +22,14 @@ DATASET_NAME = "evaluation_basic_dataset"
 BASE_DIR = Path(__file__).parent
 
 # Setup
-oai_client = get_openai_client()
+llm_client = get_llm_client()
+
 prompt = load_yaml_prompt("additional_criteria.yaml")
 
 
 def run_custom_criteria_evaluation(inputs: dict) -> dict:
     """Target function for evaluate()."""
-    return execute_text_prompt(prompt, inputs, oai_client, input_key="code")
+    return execute_text_prompt(prompt, inputs, llm_client, input_key="code")
 
 
 # CUSTOM CRITERIA: Custom criteria
@@ -53,11 +60,12 @@ evaluators = [
         "score_string",
         config={
             "criteria": {
-                "faithfulness": "Is the response grounded ONLY in the provided code? Doesn't invent problems or context that doesn't exist in the code? Doesn't add assumptions about code that wasn't shown?"
+                "faithfulness": "Is the response grounded ONLY in the provided code? Doesn't invent problems or context that doesn't exist in the code? Doesn't add assumptions about code that wasn't shown? IMPORTANT: Output the final score in double brackets like [[8]]."
             },
             "normalize_by": 10
         },
-        prepare_data=prepare_with_input
+        prepare_data=prepare_with_input,
+        llm=llm_client
     ),
 
     # Custom: Format Adherence (format adherence)
@@ -66,11 +74,12 @@ evaluators = [
         "score_string",
         config={
             "criteria": {
-                "format_adherence": "Did the response follow EXACTLY the format instructions? Returned ONLY valid JSON without additional text before or after? No markdown, no extra explanations?"
+                "format_adherence": "Did the response follow EXACTLY the format instructions? Returned ONLY valid JSON without additional text before or after? No markdown, no extra explanations? IMPORTANT: Output the final score in double brackets like [[8]]."
             },
             "normalize_by": 10
         },
-        prepare_data=prepare_with_input
+        prepare_data=prepare_with_input,
+        llm=llm_client
     ),
 
     # Custom: Code Specificity (technical specificity)
@@ -79,11 +88,12 @@ evaluators = [
         "score_string",
         config={
             "criteria": {
-                "code_specificity": "Does the analysis mention specific line numbers? Uses precise technical terminology (e.g., sql_injection, n_plus_1_query)? Provides actionable details instead of generic ones?"
+                "code_specificity": "Does the analysis mention specific line numbers? Uses precise technical terminology (e.g., sql_injection, n_plus_1_query)? Provides actionable details instead of generic ones? IMPORTANT: Output the final score in double brackets like [[8]]."
             },
             "normalize_by": 10
         },
-        prepare_data=prepare_with_input
+        prepare_data=prepare_with_input,
+        llm=llm_client
     ),
 ]
 
