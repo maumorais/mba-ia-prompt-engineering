@@ -38,40 +38,35 @@ evaluators = [
     # Detects not_helpful (bad_not_helpful should have low score)
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "helpfulness", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "helpfulness", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Detects lack of details (bad_not_helpful should have low score)
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "detail", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "detail", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Detects superficial analysis (bad_not_helpful should have low score)
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "depth", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "depth", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Additional metrics for context
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "coherence", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "coherence", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "conciseness", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "conciseness", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 ]
 

@@ -25,7 +25,7 @@ messages:
          - Be ACTIONABLE: explain exactly what to do to fix
          - Be COMPLETE: don't omit minor or secondary issues
 
-      MANDATORY FORMAT - Return ONLY JSON:
+      MANDATORY FORMAT - Return ONLY RAW JSON in format, **NEVER USE MARKDOWN**:
       {{"findings":[{{"type":"<exact_issue_type>","line":<number>,"description":"<technical_description>","severity":"<critical|high|medium|low>","suggestion":"<specific_solution>"}}],"summary":"<technical_summary>","stats":{{"total":<N>,"critical":<N>,"high":<N>,"medium":<N>,"low":<N>}}}}
 
       DO NOT HALLUCINATE: Identify only REAL issues that exist in the provided code.

@@ -51,25 +51,22 @@ evaluators = [
     # Binary: Is concise? (0=no, 1=yes)
     LangChainStringEvaluator(
         "criteria",
-        config={"criteria": "conciseness"},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "conciseness","llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Binary: Is helpful? (0=no, 1=yes)
     LangChainStringEvaluator(
         "criteria",
-        config={"criteria": "helpfulness"},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "helpfulness","llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Binary with reference: Is correct compared to expected? (0=no, 1=yes)
     LangChainStringEvaluator(
         "labeled_criteria",
-        config={"criteria": "correctness"},
-        prepare_data=prepare_with_reference,
-        llm=llm_client
+        config={"criteria": "correctness","llm": llm_client},
+        prepare_data=prepare_with_reference
     ),
 ]
 

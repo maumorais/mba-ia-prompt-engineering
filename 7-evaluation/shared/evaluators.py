@@ -87,9 +87,28 @@ def prepare_for_embedding_distance(run, example):
         reference_text = reference_data["summary"]
     else:
         import json
-        reference_text = json.dumps(reference_data)
+        try:
+            reference_text = json.dumps(reference_data)
+        except Exception:
+            reference_text = str(reference_data)
         
+    prediction = run.outputs.get("output", "")
+    
+    # Ensure EVERYTHING is a string to avoid Google Embeddings 'dict' error
+    if not isinstance(prediction, str):
+        if isinstance(prediction, dict):
+             import json
+             try:
+                 prediction = json.dumps(prediction)
+             except:
+                 prediction = str(prediction)
+        else:
+             prediction = str(prediction)
+
+    if not isinstance(reference_text, str):
+         reference_text = str(reference_text)
+
     return {
-        "prediction": run.outputs.get("output", ""),
+        "prediction": prediction,
         "reference": reference_text
     }

@@ -1,9 +1,8 @@
 """Correctness evaluation for Go code analyzer using Langfuse with LangChain."""
 from datetime import datetime
 from langfuse.langchain import CallbackHandler
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from shared.clients import get_langfuse_client
+from shared.clients import get_langfuse_client, get_llm_client
 from shared.parsers import parse_json_response
 from dotenv import load_dotenv
 import yaml
@@ -33,7 +32,7 @@ def load_prompt_from_yaml(filename):
 prompt = load_prompt_from_yaml(PROMPT_FILE)
 
 # Create LLM and chain
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+llm = get_llm_client(model="gpt-4o-mini", temperature=0)
 chain = prompt | llm
 
 

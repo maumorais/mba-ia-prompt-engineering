@@ -70,7 +70,7 @@ template: |
 
   {code}
 
-  Return ONLY JSON in this exact format:
+  Return ONLY RAW JSON in this exact format, **NEVER USE MARKDOWN**:
   {{
     "findings": [
       {{"type": "<exact_type_from_above>", "line": <line_number>, "description": "<brief_explanation>", "severity": "<critical|high|medium|low>"}}

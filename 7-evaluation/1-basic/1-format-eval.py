@@ -67,6 +67,17 @@ def validate_schema(run, example):
     """Validate JSON against expected schema."""
     try:
         output = run.outputs.get("output", "").strip()
+        
+        # Remove markdown code blocks if present
+        if output.startswith("```json"):
+            output = output[7:]
+        elif output.startswith("```"):
+            output = output[3:]
+        
+        if output.endswith("```"):
+            output = output[:-3]
+            
+        output = output.strip()
 
         data = json.loads(output)
         jsonschema.validate(instance=data, schema=EXPECTED_SCHEMA)

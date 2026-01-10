@@ -51,33 +51,29 @@ evaluators = [
     # Conciseness: Also used in ex.2 to show difference binary (0/1) vs continuous (0.0-1.0)
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "conciseness", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "conciseness", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Coherence: Is analysis coherent and well-structured?
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "coherence", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "coherence", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Detail: Does analysis detail line, issue type, severity?
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "detail", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "detail", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # Depth: Does analysis go beyond obvious? Identifies non-trivial issues?
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "depth", "normalize_by": 10},
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        config={"criteria": "depth", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_input
     ),
 
     # WITH reference - compares with expected output
@@ -85,9 +81,8 @@ evaluators = [
     # Relevance: Is analysis relevant to provided code?
     LangChainStringEvaluator(
         "labeled_score_string",
-        config={"criteria": "relevance", "normalize_by": 10},
-        prepare_data=prepare_with_reference,
-        llm=llm_client
+        config={"criteria": "relevance", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_reference
     ),
 ]
 
@@ -97,7 +92,7 @@ results = evaluate(
     data=DATASET_NAME,
     evaluators=evaluators,
     experiment_prefix="CriteriaScoreEval",
-    max_concurrency=1
+    max_concurrency=2
 )
 
 print("="*80)

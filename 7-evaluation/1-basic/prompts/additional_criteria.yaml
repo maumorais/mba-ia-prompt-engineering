@@ -8,7 +8,7 @@ template: |
 
   {code}
 
-  Return ONLY JSON in format:
+  Return ONLY RAW JSON in format, **NEVER USE MARKDOWN**:
   {{
     "findings": [
       {{"type":"", "line":0, "description":"", "severity":""}}

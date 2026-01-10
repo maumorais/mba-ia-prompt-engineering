@@ -2,7 +2,7 @@
 from langsmith.evaluation import LangChainStringEvaluator
 
 
-def create_evaluators_for_documentation():
+def create_evaluators_for_documentation(client):
     """
     Create suite of evaluators for documentation quality assessment.
 
@@ -15,11 +15,14 @@ def create_evaluators_for_documentation():
     6. Terminology consistency with reference
     7. Faithfulness to source code
 
+    Args:
+        client: LangChain chat model to use for evaluation.
+
     Returns:
         List of LangChainStringEvaluator instances
 
     Example:
-        >>> evaluators = create_evaluators_for_documentation()
+        >>> evaluators = create_evaluators_for_documentation(client)
         >>> results = evaluate(
         ...     run_function,
         ...     data=dataset,
@@ -55,7 +58,8 @@ def create_evaluators_for_documentation():
                         "Compare STYLES, not judging quality."
                     )
                 },
-                "normalize_by": 10
+                "normalize_by": 10,
+                "llm": client
             },
             prepare_data=prepare_data_with_reference
         ),
@@ -73,7 +77,8 @@ def create_evaluators_for_documentation():
                         "Compare DEPTH, not judging quality."
                     )
                 },
-                "normalize_by": 10
+                "normalize_by": 10,
+                "llm": client
             },
             prepare_data=prepare_data_with_reference
         ),
@@ -90,7 +95,8 @@ def create_evaluators_for_documentation():
                         "bullet points). Compare STYLE, not judging quality."
                     )
                 },
-                "normalize_by": 10
+                "normalize_by": 10,
+                "llm": client
             },
             prepare_data=prepare_data_with_reference
         ),
@@ -107,7 +113,8 @@ def create_evaluators_for_documentation():
                         "Compare section headers and organization."
                     )
                 },
-                "normalize_by": 10
+                "normalize_by": 10,
+                "llm": client
             },
             prepare_data=prepare_data_with_reference
         ),
@@ -124,7 +131,8 @@ def create_evaluators_for_documentation():
                         "prediction should list them. Compare topic coverage."
                     )
                 },
-                "normalize_by": 10
+                "normalize_by": 10,
+                "llm": client
             },
             prepare_data=prepare_data_with_reference
         ),
@@ -141,7 +149,8 @@ def create_evaluators_for_documentation():
                         "technical language."
                     )
                 },
-                "normalize_by": 10
+                "normalize_by": 10,
+                "llm": client
             },
             prepare_data=prepare_data_with_reference
         ),
@@ -158,7 +167,8 @@ def create_evaluators_for_documentation():
                         "wasn't shown?"
                     )
                 },
-                "normalize_by": 10
+                "normalize_by": 10,
+                "llm": client
             },
             prepare_data=prepare_data
         ),

@@ -1,9 +1,10 @@
 """Helpers for documentation pairwise evaluation."""
 import json
 from shared.parsers import parse_json_response
+from langchain_core.messages import HumanMessage
 
 
-def create_pairwise_judge(judge_prompt_obj, oai_client):
+def create_pairwise_judge(judge_prompt_obj, client):
     """
     Create pairwise judge with detailed reasoning for documentation quality.
 
@@ -11,12 +12,11 @@ def create_pairwise_judge(judge_prompt_obj, oai_client):
 
     Args:
         judge_prompt_obj: Judge prompt template
-        oai_client: OpenAI client
+        client: LangChain Chat Model (configured)
 
     Returns:
         Evaluator function for evaluate_comparative
     """
-    from shared.clients import get_model_name, get_temperature
 
     def pairwise_judge(inputs: dict, outputs: list, reference_outputs: dict = None):
         """Pairwise judge with reasoning."""
@@ -37,13 +37,9 @@ def create_pairwise_judge(judge_prompt_obj, oai_client):
         )
 
         # Get judge response
-        response = oai_client.chat.completions.create(
-            messages=[{"role": "user", "content": judge_prompt}],
-            model=get_model_name(),
-            temperature=get_temperature()
-        )
-
-        full_response = response.choices[0].message.content.strip()
+        # client is a LangChain model
+        response = client.invoke([HumanMessage(content=judge_prompt)])
+        full_response = response.content.strip()
 
         # Try to parse structured response
         try:

@@ -25,5 +25,5 @@ messages:
       - Inefficient locking (use RWMutex when appropriate)
       - Sequential processing that could be parallel
 
-      Return ONLY JSON in format:
+      Return ONLY RAW JSON in format, **NEVER USE MARKDOWN**:
       {{"findings":[{{"type":"<type>","line":<num>,"description":"<desc>","severity":"<critical|high|medium|low>"}}],"summary":"<summary>"}}

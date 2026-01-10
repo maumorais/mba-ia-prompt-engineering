@@ -36,15 +36,13 @@ def run_correctness_evaluation(inputs: dict) -> dict:
 evaluators = [
     LangChainStringEvaluator(
         "labeled_score_string",
-        config={"criteria": "correctness", "normalize_by": 10},
-        prepare_data=prepare_with_reference,
-        llm=llm_client
+        config={"criteria": "correctness", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_reference
     ),
     LangChainStringEvaluator(
         "labeled_score_string",
-        config={"criteria": "relevance", "normalize_by": 10},
-        prepare_data=prepare_with_reference,
-        llm=llm_client
+        config={"criteria": "relevance", "normalize_by": 10, "llm": llm_client},
+        prepare_data=prepare_with_reference
     )
 ]
 

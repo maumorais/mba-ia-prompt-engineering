@@ -62,10 +62,10 @@ evaluators = [
             "criteria": {
                 "faithfulness": "Is the response grounded ONLY in the provided code? Doesn't invent problems or context that doesn't exist in the code? Doesn't add assumptions about code that wasn't shown? IMPORTANT: Output the final score in double brackets like [[8]]."
             },
-            "normalize_by": 10
+            "normalize_by": 10, 
+            "llm": llm_client
         },
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        prepare_data=prepare_with_input
     ),
 
     # Custom: Format Adherence (format adherence)
@@ -76,10 +76,10 @@ evaluators = [
             "criteria": {
                 "format_adherence": "Did the response follow EXACTLY the format instructions? Returned ONLY valid JSON without additional text before or after? No markdown, no extra explanations? IMPORTANT: Output the final score in double brackets like [[8]]."
             },
-            "normalize_by": 10
+            "normalize_by": 10, 
+            "llm": llm_client
         },
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        prepare_data=prepare_with_input
     ),
 
     # Custom: Code Specificity (technical specificity)
@@ -90,10 +90,10 @@ evaluators = [
             "criteria": {
                 "code_specificity": "Does the analysis mention specific line numbers? Uses precise technical terminology (e.g., sql_injection, n_plus_1_query)? Provides actionable details instead of generic ones? IMPORTANT: Output the final score in double brackets like [[8]]."
             },
-            "normalize_by": 10
+            "normalize_by": 10,
+            "llm": llm_client
         },
-        prepare_data=prepare_with_input,
-        llm=llm_client
+        prepare_data=prepare_with_input
     ),
 ]
 

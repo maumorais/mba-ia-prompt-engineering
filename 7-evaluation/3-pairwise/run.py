@@ -2,7 +2,7 @@ from langsmith import evaluate, Client
 from langsmith.evaluation import evaluate_comparative
 from datetime import datetime
 
-from shared.clients import get_openai_client
+from shared.clients import get_llm_client
 from shared.prompts import load_yaml_prompt, execute_chat_prompt
 from pairwise_helpers import create_pairwise_evaluator
 
@@ -12,14 +12,14 @@ PROMPT_A_ID = "pairwise_comparison_security"
 PROMPT_B_ID = "pairwise_comparison_performance"
 
 # Setup
-client = Client()
-oai_client = get_openai_client()
+langsmith_client = Client()
+client = get_llm_client()
 timestamp = datetime.now().strftime("%H%M")
 
 # Load judge template and prompts
 judge_template = load_yaml_prompt("pairwise_judge.yaml")
-prompt_a_obj = client.pull_prompt(PROMPT_A_ID)
-prompt_b_obj = client.pull_prompt(PROMPT_B_ID)
+prompt_a_obj = langsmith_client.pull_prompt(PROMPT_A_ID)
+prompt_b_obj = langsmith_client.pull_prompt(PROMPT_B_ID)
 
 print(f" Prompt A: {PROMPT_A_ID}")
 print(f" Prompt B: {PROMPT_B_ID}\n")
@@ -30,7 +30,7 @@ def run_prompt_a(inputs: dict) -> dict:
     return execute_chat_prompt(
         prompt_a_obj,
         inputs,
-        oai_client,
+        client,
         code=inputs['code'],
         language=inputs['language']
     )
@@ -41,14 +41,14 @@ def run_prompt_b(inputs: dict) -> dict:
     return execute_chat_prompt(
         prompt_b_obj,
         inputs,
-        oai_client,
+        client,
         code=inputs['code'],
         language=inputs['language']
     )
 
 
 # Create pairwise judge
-pairwise_judge = create_pairwise_evaluator(judge_template, oai_client)
+pairwise_judge = create_pairwise_evaluator(judge_template, client)
 
 # Main
 if __name__ == "__main__":
