@@ -21,6 +21,8 @@ cases:
       files_changed: "utils/validators.py"
       branch_name: "fix/email-validation"
       breaking_changes: "Não"
+      issue_number: "123"
+      testing_done: "Testes unitários e integração executados com sucesso"
     expect_contains:
       - "Correção de bug na validação de email"
       - "utils/validators.py"
