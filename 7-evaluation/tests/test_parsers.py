@@ -59,16 +59,7 @@ class TestParseJsonResponse:
 
     def test_parse_markdown_list(self):
         raw = '```json\n[1, 2, 3]\n```'
-        # The logic searches for '{' and '}'. So a list will fail the markdown stripping logic
-        # because it starts with '['. This is a potential bug/limitation to document via test.
-        
-        # Based on code:
-        # start = text.find("{") -> will be -1
-        # if start != -1 ... -> False
-        # text = text[start:end] -> Not executed
-        # json.loads('```json\n[1, 2, 3]\n```') -> Fails
-        
         result = parse_json_response(raw)
-        # Expecting empty dict due to failure, identifying a limitation
-        assert result == {}
+        # Now expecting success
+        assert result == [1, 2, 3]
 

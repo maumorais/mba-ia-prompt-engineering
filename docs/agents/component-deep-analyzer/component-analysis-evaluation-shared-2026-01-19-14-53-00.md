@@ -1,37 +1,27 @@
-# Component Deep Analysis Report: 7-evaluation/shared
-
-**Generated on:** 2026-01-19-14-53-00
-**Component:** `7-evaluation/shared`
-**Path:** `c:/Desenvolvimento/GitHub/mba-ia-prompt-engineering/7-evaluation/shared`
+# Component Deep Analysis Report: Evaluation Shared Lib
 
 ## 1. Executive Summary
 
-The `7-evaluation/shared` component serves as the foundational utility library for the entire evaluation framework within the repository. It implements a **Shared Kernel** architectural pattern, centralizing cross-cutting concerns such as API client instantiation (handling multi-provider logic), dataset management (uploading to Observability platforms), and response parsing.
+The **Evaluation Shared Lib** (`7-evaluation/shared/`) acts as the foundational utility layer for the entire evaluation framework (Module 7). Its primary responsibility is to provide unified, provider-agnostic access to LLM services (OpenAI vs Google), consistent observability instrumentation (LangSmith, Langfuse), and standardized data processing utilities for evaluation metrics.
 
-**Key Findings:**
-*   **Provider Agnostic:** It implements a unified factory for LLM clients, automatically selecting between Google Gemini and OpenAI based on environment variables, prioritizing Google.
-*   **Observability First:** Built-in support for both **LangSmith** and **Langfuse**, allowing the project to switch or use both platforms simultaneously for tracing and dataset management.
-*   **High Cohesion:** The module is well-organized into semantic files (`clients`, `datasets`, `parsers`), each responsible for a single domain.
-*   **Low Coupling (Efferent):** Depends only on standard libraries and specific SDKs, making it highly portable.
+Key finding: The component implements a strict **provider priority logic** (Google > OpenAI), allowing cost optimization or vendor fallback without changing consuming code. It also centralizes the complexity of cleaning "dirty" JSON often returned by LLMs.
 
 ## 2. Data Flow Analysis
 
-Since this is a library, data flow is request-driven by consumers (evaluation scripts).
+Typical flow for an evaluation run using this lib:
 
-**Typical Flow (Client Instantiation):**
-1. Consumer script calls `clients.get_llm_client()`.
-2. `clients.py` checks `.env` for `GOOGLE_API_KEY`.
-3. If present -> Instantiates `ChatGoogleGenerativeAI` (Gemini).
-4. Else -> Checks `OPENAI_API_KEY` -> Instantiates `ChatOpenAI` (GPT).
-5. Returns configured `BaseChatModel` to consumer.
-
-**Typical Flow (Dataset Upload):**
-1. Consumer calls `datasets.upload_langfuse_dataset(path)`.
-2. `datasets.py` reads JSONL file.
-3. Parses each line into `inputs`, `outputs`, and `metadata`.
-4. Checks if dataset exists via Langfuse Client.
-5. Iterates and uploads items using `create_dataset_item`.
-6. Flushes client to ensure persistence.
+```
+1. Script calls get_llm_client() (clients.py)
+   └── Logic checks env vars: if GOOGLE_API_KEY ? GoogleGemini : OpenAI
+2. Script executes LLM chain
+3. Raw text response is passed to parse_json_response() (parsers.py)
+   └── Strips markdown "```json" wrappers
+   └── Returns clean Dict
+4. Evaluation loop calls prepare_*() functions (evaluators.py)
+   └── Extracts 'prediction' from Run object
+   └── Extracts 'reference' from Dataset Example
+   └── Formats payload for the Judge/Metric
+```
 
 ## 3. Business Rules & Logic
 
@@ -39,114 +29,83 @@ Since this is a library, data flow is request-driven by consumers (evaluation sc
 
 | Rule Type | Rule Description | Location |
 |-----------|------------------|----------|
-| Configuration | Google API takes precedence over OpenAI | `clients.py:28` |
-| Fallback | Default model is `gemini-2.5-flash` (Google) or `gpt-4o-mini` (OpenAI) | `clients.py:33,43` |
-| Data Processing | JSON Parser must handle Markdown code blocks | `parsers.py:20` |
-| Data Processing | Embeddings must convert dicts to strings for Google models | `evaluators.py:100` |
+| **Provider Priority** | Prefer Google Gemini over OpenAI if key is present | `clients.py:get_llm_client` |
+| **Parsing Robustness** | Aggressively strip Markdown formatting from JSON | `parsers.py:parse_json_response` |
+| **Embedding Consistency** | Enforce string typing for Embedding inputs | `evaluators.py:prepare_for_embedding_distance` |
 
-## Detailed breakdown of the business rules:
+## Detailed breakdown:
 
-### Business Rule: Multi-Provider LLM Client Factory
-
-**Overview**:
-The system is designed to be agnostic regarding the underlying LLM provider, but enforces a strict preference order to manage costs or capabilities.
-
-**Detailed description**:
-When a script requests an LLM client, the factory function `get_llm_client` inspects the environment variables. The logic is hardcoded to prefer Google's Gemini models if the `GOOGLE_API_KEY` is available. This suggests a strategic decision, possibly due to cost (Flash model) or performance characteristics. If Google is not configured, it falls back to OpenAI. If neither is present, it raises a critical error, preventing silent failures.
-
-**Rule workflow**:
-1. Check `GOOGLE_API_KEY`.
-2. If True: Return `ChatGoogleGenerativeAI(model="gemini-2.5-flash")`.
-3. If False: Check `OPENAI_API_KEY`.
-4. If True: Return `ChatOpenAI(model="gpt-4o-mini")`.
-5. If False: Raise `ValueError`.
-
-### Business Rule: JSON Parsing Robustness
+### Business Rule: Provider Priority Strategy
 
 **Overview**:
-LLMs frequently return requested JSON data wrapped in Markdown code blocks (e.g., ```json ... ```), which breaks standard `json.loads`.
+The system is designed to be agnostic but opinionated about costs/providers.
 
 **Detailed description**:
-The `parse_json_response` function implements a cleaning step before attempting to parse. It specifically looks for the triple backtick pattern. If found, it attempts to slice the string from the first `{` to the last `}`, effectively stripping the markdown wrapper. This ensures that evaluation scripts don't fail due to formatting "sugar" added by the model.
+The factory functions `get_llm_client` and `get_embeddings_client` do not just instantiate a client; they check the environment. If `GOOGLE_API_KEY` is detected, the system forces the use of `ChatGoogleGenerativeAI` (`gemini-2.5-flash`). Only if that key is missing does it fall back to `ChatOpenAI` (`gpt-4o-mini`). This allows developers to switch underlying engines globally by simply toggling environment variables.
 
-**Rule workflow**:
-1. Input string received.
-2. Check if starts with ` ``` `.
-3. If yes, find indices of first `{` and last `}`.
-4. Slice string.
-5. Attempt `json.loads`.
-6. Return `dict` or empty `dict` on failure (fail-safe).
+### Business Rule: JSON Markdown Cleaning
+
+**Overview**:
+LLMs frequently disobey "return raw JSON" instructions and wrap output in markdown code blocks.
+
+**Detailed description**:
+The `parse_json_response` function implements a heuristic scanner. It searches for the first `{` or `[` and the last `}` or `]`, ignoring everything outside these bounds (like "Here is your JSON:" prefixes or "```" suffixes). This ensures that evaluation pipelines don't crash due to formatting noise.
 
 ## 4. Component Structure
 
 ```
-shared/
-├── __init__.py           # Package marker, version 1.0.0
-├── clients.py            # Factory for LLM, Embeddings, LangSmith, Langfuse clients
-├── datasets.py           # Logic for uploading JSONL datasets to platforms
-├── evaluators.py         # Data preparation helpers for evaluation chains
-├── parsers.py            # Robust JSON parsing from LLM outputs
-└── prompts.py            # Helpers for loading YAML prompts and formatting messages
+7-evaluation/shared/
+├── clients.py          # Factory patterns for LLMs & Observability
+├── evaluators.py       # Data transformers for LangSmith evaluators
+├── parsers.py          # Text processing & JSON sanitization
+└── prompts.py          # (Empty/Placeholder in analyzed version)
 ```
 
 ## 5. Dependency Analysis
 
-**Internal Dependencies:**
-*   None. This is a leaf node in the project architecture.
+**Internal Dependencies**:
+- None (Modules are largely independent utility buckets)
 
-**External Dependencies:**
-*   `langchain_openai`: For OpenAI model wrappers.
-*   `langchain_google_genai`: For Google Gemini model wrappers.
-*   `langsmith`: For observability client.
-*   `langfuse`: For alternative observability client.
-*   `python-dotenv`: For loading configuration.
-*   `json`, `os`, `pathlib`: Standard libraries.
+**External Dependencies**:
+- `langchain-openai`, `langchain-google-genai`: For model wrappers.
+- `langsmith`, `langfuse`: For observability client instantiation.
+- `python-dotenv`: For loading configuration.
+- `openai`: Direct client usage (legacy support).
 
 ## 6. Afferent and Efferent Coupling
 
 | Component | Afferent Coupling | Efferent Coupling | Critical |
 |-----------|-------------------|-------------------|-------------------|
-| `clients.py` | High (Used by 1-basic, 5-langfuse, etc.) | Medium (External SDKs) | **Critical** |
-| `datasets.py` | Medium (Used by upload scripts) | Low (Langfuse/Smith SDKs) | Medium |
-| `evaluators.py` | High (Used by all judge scripts) | Low | High |
+| `clients.py` | High (Used by all scripts in 7-evaluation) | High (LangChain, OpenAI, Google SDKs) | **Critical** |
+| `parsers.py` | Medium (Used by structured output tests) | Low (json stdlib) | Low |
+| `evaluators.py` | Medium (Used by run.py scripts) | Low (LangSmith objects) | Medium |
 
-*   **Afferent Coupling (Ca):** High because almost every script in parent directories imports `get_llm_client` or `prepare_...` functions.
-*   **Efferent Coupling (Ce):** Low/Medium. It depends only on stable external libraries.
+## 7. Integration Points
 
-## 7. Endpoints
-
-*   **N/A**: This component is a library, not a service. It does not expose HTTP/gRPC endpoints.
-
-## 8. Integration Points
-
-| Integration | Type | Purpose | Protocol | Data Format | Error Handling |
-|-------------|------|---------|----------|-------------|----------------|
-| LangSmith API | SaaS | Dataset Upload / Tracing | HTTPS | JSON | SDK handled |
-| Langfuse API | SaaS | Dataset Upload / Tracing | HTTPS | JSON | SDK handled |
-| OpenAI API | SaaS | LLM Inference | HTTPS | JSON | SDK handled |
-| Google AI API | SaaS | LLM Inference | HTTPS | JSON | SDK handled |
+| Integration | Type | Purpose | Protocol | Data Format |
+|-------------|------|---------|----------|-------------|
+| **Google Gemini API** | External Service | Inference & Embeddings | HTTPS/REST | JSON |
+| **OpenAI API** | External Service | Inference & Embeddings | HTTPS/REST | JSON |
+| **LangSmith API** | Observability | Tracing & Evaluation | HTTPS | JSON |
 
 ## 9. Design Patterns & Architecture
 
 | Pattern | Implementation | Location | Purpose |
 |---------|----------------|----------|---------|
-| **Factory Pattern** | `get_llm_client` | `clients.py` | Abstract object creation logic (Google vs OpenAI) from consumers. |
-| **Adapter Pattern** | `datasets.py` functions | `datasets.py` | Adapt local JSONL format to specific API requirements of LangSmith/Langfuse. |
-| **Strategy Pattern** | `prepare_...` functions | `evaluators.py` | Different strategies for extracting data depending on the evaluator type (binary, embedding, etc.). |
+| **Factory Method** | `get_llm_client` | `clients.py` | Decouple client creation from implementation (OpenAI vs Google) |
+| **Adapter** | `prepare_with_reference` | `evaluators.py` | Adapt internal Run/Example objects to Evaluator interface |
+| **Strategy** | `parse_json_response` | `parsers.py` | Robust parsing strategy handling multiple format variations |
 
 ## 10. Technical Debt & Risks
 
 | Risk Level | Component Area | Issue | Impact |
 |------------|----------------|-------|--------|
-| Medium | `evaluators.py` | Hardcoded JSON fix for Embeddings | `prepare_for_embedding_distance` contains logic to stringify dicts (`evaluators.py:100`) to avoid Google API errors. This suggests the API client might be brittle. |
-| Low | `clients.py` | Hardcoded Model Names | Model names like `gemini-2.5-flash` are hardcoded. If Google deprecates this, the code breaks. Should be fully env-driven. |
-| Low | `datasets.py` | Duplicate Logic | `upload_langsmith_dataset` and `upload_langfuse_dataset` share very similar reading logic. Could be refactored to a `read_dataset` common function. |
+| **Medium** | `clients.py` | Hardcoded Model Names | Changing `gpt-4o-mini` requires code edits; should be env var fully. |
+| **Low** | `evaluators.py` | Type Safety | `prepare_for_embedding_distance` has aggressive `try/except` blocks for JSON dumping, masking potential serialization errors. |
 
 ## 11. Test Coverage Analysis
 
 | Component | Unit Tests | Integration Tests | Coverage | Test Quality |
 |-----------|------------|-------------------|----------|--------------|
-| `shared` | 0 | 0 | 0% | **Critical Risk**. No tests found specifically for the shared library. It is tested implicitly via the execution of scripts in `1-basic` or `5-langfuse`. |
-
-## 12. Save Report
-(Implicit instruction handled by agent action)
+| `parsers.py` | `tests/test_parsers.py` | N/A | High | Covers standard JSON, Markdown-wrapped, and invalid inputs. |
+| `clients.py` | `tests/test_clients.py` | N/A | High | Mocks environment variables to verify priority logic without real API calls. |

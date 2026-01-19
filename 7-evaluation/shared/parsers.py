@@ -30,9 +30,25 @@ def parse_json_response(text: str) -> dict:
     text = text.strip()
 
     # Remove markdown code blocks
-    if text.startswith("```"):
-        start = text.find("{")
-        end = text.rfind("}") + 1
+    if "```" in text:
+        # Clean up start
+        start_brace = text.find("{")
+        start_bracket = text.find("[")
+        
+        # Determine strict start index (whichever comes first and is valid)
+        if start_brace != -1 and start_bracket != -1:
+            start = min(start_brace, start_bracket)
+        elif start_brace != -1:
+            start = start_brace
+        else:
+            start = start_bracket
+            
+        # Clean up end
+        end_brace = text.rfind("}")
+        end_bracket = text.rfind("]")
+        
+        end = max(end_brace, end_bracket) + 1 if (end_brace != -1 or end_bracket != -1) else -1
+
         if start != -1 and end > start:
             text = text[start:end]
 
