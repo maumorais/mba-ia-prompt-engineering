@@ -1,13 +1,13 @@
 """Helpers for pairwise evaluation."""
 
 
-def create_pairwise_evaluator(judge_prompt_obj, oai_client):
+def create_pairwise_evaluator(judge_prompt_obj, client):
     """
     Create pairwise evaluator function for evaluate_comparative.
 
     Args:
         judge_prompt_obj: Judge prompt template (PromptTemplate)
-        oai_client: OpenAI client
+        client: LangChain Chat Model (configured with temperature/model)
 
     Returns:
         Evaluator function with signature:
@@ -20,10 +20,10 @@ def create_pairwise_evaluator(judge_prompt_obj, oai_client):
 
     Example:
         >>> from shared.prompts import load_yaml_prompt
-        >>> from shared.clients import get_openai_client
+        >>> from shared.clients import get_llm_client
         >>>
         >>> judge = load_yaml_prompt("pairwise_judge.yaml")
-        >>> client = get_openai_client()
+        >>> client = get_llm_client()
         >>> evaluator = create_pairwise_evaluator(judge, client)
         >>>
         >>> # Use in evaluate_comparative
@@ -32,7 +32,7 @@ def create_pairwise_evaluator(judge_prompt_obj, oai_client):
         ...     evaluators=[evaluator]
         ... )
     """
-    from shared.clients import get_model_name, get_temperature
+    from langchain_core.messages import HumanMessage
 
     def evaluate_pairwise(inputs: dict, outputs: list, reference_outputs: dict = None):
         """Pairwise comparison evaluator."""
@@ -47,14 +47,10 @@ def create_pairwise_evaluator(judge_prompt_obj, oai_client):
             answer_b=answer_b
         )
 
-        # Get judge decision
-        response = oai_client.chat.completions.create(
-            messages=[{"role": "user", "content": judge_prompt}],
-            model=get_model_name(),
-            temperature=get_temperature()
-        )
-
-        decision = response.choices[0].message.content.strip().upper()
+        # Get judge decision using LangChain invoke
+        # client is already configured with model and temperature
+        response = client.invoke([HumanMessage(content=judge_prompt)])
+        decision = response.content.strip().upper()
 
         # Parse decision
         if "A" in decision and "B" not in decision:

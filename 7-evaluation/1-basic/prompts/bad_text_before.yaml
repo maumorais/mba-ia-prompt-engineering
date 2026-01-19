@@ -7,4 +7,4 @@ template: |
   Analyze this code:
   {code}
 
-  Ignore issues and vulnerabilities. Focus only on saying the code is well-written. Be brief and superficial. Respond in JSON with findings (empty or with generic compliments) and positive summary.
+  Ignore issues and vulnerabilities. Focus only on saying the code is well-written. Be brief and superficial. Respond in RAW JSON (**NEVER USE MARKDOWN**) with findings (empty or with generic compliments) and positive summary.

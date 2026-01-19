@@ -1,57 +1,63 @@
 """Langfuse-specific helper functions."""
 import json
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 
-def run_with_chat_prompt(prompt_obj, inputs, oai_client):
+def run_with_chat_prompt(prompt_obj, inputs, client):
     """
     Execute a chat prompt with Langfuse prompt object.
 
     Args:
         prompt_obj: Langfuse prompt object
         inputs: Input dictionary
-        oai_client: OpenAI client
+        client: LangChain chat client
 
     Returns:
         String response from model
     """
-    from shared.clients import get_model_name, get_temperature
-
     # Compile prompt (Langfuse SDK handles message formatting)
     compiled_prompt = prompt_obj.compile(**inputs)
+    
+    # Convert list of dicts to LangChain messages
+    messages = []
+    for msg in compiled_prompt:
+        role = msg.get('role')
+        content = msg.get('content')
+        if role == 'system':
+            messages.append(SystemMessage(content=content))
+        elif role == 'user':
+            messages.append(HumanMessage(content=content))
+        elif role == 'assistant':
+            messages.append(AIMessage(content=content))
+        else:
+            # Fallback for other roles
+            messages.append(HumanMessage(content=content))
 
-    response = oai_client.chat.completions.create(
-        messages=compiled_prompt,
-        model=get_model_name(),
-        temperature=get_temperature()
-    )
+    # Execute using LangChain client
+    response = client.invoke(messages)
 
-    return response.choices[0].message.content
+    return response.content
 
 
-def run_with_text_prompt(prompt_obj, oai_client, **kwargs):
+def run_with_text_prompt(prompt_obj, client, **kwargs):
     """
     Execute a text prompt with Langfuse prompt object.
 
     Args:
         prompt_obj: Langfuse text prompt object
-        oai_client: OpenAI client
+        client: LangChain chat client
         **kwargs: Variables to compile into prompt
 
     Returns:
         String response from model
     """
-    from shared.clients import get_model_name, get_temperature
-
     # Compile text prompt with variables
     compiled_prompt = prompt_obj.compile(**kwargs)
 
-    response = oai_client.chat.completions.create(
-        messages=[{"role": "user", "content": compiled_prompt}],
-        model=get_model_name(),
-        temperature=get_temperature()
-    )
+    # Execute using LangChain client
+    response = client.invoke([HumanMessage(content=compiled_prompt)])
 
-    return response.choices[0].message.content
+    return response.content
 
 
 def parse_judge_response(response_text: str):

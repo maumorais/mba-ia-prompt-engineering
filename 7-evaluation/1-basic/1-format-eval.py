@@ -3,13 +3,19 @@ Format evaluation: JSON validity and schema validation.
 
 Demonstrates deterministic evaluation without LLM judges.
 """
+#Incluindo a pasta superior no caminho do python, para permitir a importação de Shared
+import sys
+import os
+# Adiciona o diretório pai (7-evaluation) ao caminho de busca do Python
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from langsmith import evaluate
 from langsmith.evaluation import LangChainStringEvaluator
 from pathlib import Path
 import json
 import jsonschema
 
-from shared.clients import get_openai_client
+from shared.clients import get_llm_client
 from shared.prompts import load_yaml_prompt, execute_text_prompt
 from shared.evaluators import prepare_prediction_only
 
@@ -18,13 +24,14 @@ DATASET_NAME = "evaluation_basic_dataset"
 BASE_DIR = Path(__file__).parent
 
 # Setup
-oai_client = get_openai_client()
+llm_client = get_llm_client()
+
 prompt = load_yaml_prompt("format_eval.yaml")
 
 
 def run_format_evaluation(inputs: dict) -> dict:
     """Target function for evaluate()."""
-    return execute_text_prompt(prompt, inputs, oai_client, input_key="code")
+    return execute_text_prompt(prompt, inputs, llm_client, input_key="code")
 
 
 # JSON validity evaluator
@@ -59,7 +66,19 @@ EXPECTED_SCHEMA = {
 def validate_schema(run, example):
     """Validate JSON against expected schema."""
     try:
-        output = run.outputs.get("output", "")
+        output = run.outputs.get("output", "").strip()
+        
+        # Remove markdown code blocks if present
+        if output.startswith("```json"):
+            output = output[7:]
+        elif output.startswith("```"):
+            output = output[3:]
+        
+        if output.endswith("```"):
+            output = output[:-3]
+            
+        output = output.strip()
+
         data = json.loads(output)
         jsonschema.validate(instance=data, schema=EXPECTED_SCHEMA)
         return {"score": 1.0, "comment": "Valid schema"}

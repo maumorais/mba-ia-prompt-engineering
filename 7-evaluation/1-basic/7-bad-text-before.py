@@ -4,11 +4,17 @@ Bad prompt test: Text before JSON.
 Tests a prompt that adds explanatory text before the JSON response.
 Expected: LOW scores in format adherence.
 """
+#Incluindo a pasta superior no caminho do python, para permitir a importação de Shared
+import sys
+import os
+# Adiciona o diretório pai (7-evaluation) ao caminho de busca do Python
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from langsmith import evaluate
 from langsmith.evaluation import LangChainStringEvaluator
 from pathlib import Path
 
-from shared.clients import get_openai_client
+from shared.clients import get_llm_client
 from shared.prompts import load_yaml_prompt, execute_text_prompt
 from shared.evaluators import prepare_with_input
 
@@ -17,14 +23,14 @@ DATASET_NAME = "evaluation_basic_dataset"
 BASE_DIR = Path(__file__).parent
 
 # Setup
-oai_client = get_openai_client()
+llm_client = get_llm_client()
 
 
 def run_bad_text_before(inputs: dict) -> dict:
     """Runs the bad_text_before prompt"""
     prompt = load_yaml_prompt("bad_text_before.yaml")
     # Note: Using higher temperature for this bad example
-    return execute_text_prompt(prompt, inputs, oai_client, input_key="code", temperature=0.7)
+    return execute_text_prompt(prompt, inputs, llm_client, input_key="code", temperature=0.7)
 
 
 # Evaluators focused on detecting lack of detail and depth
@@ -32,27 +38,27 @@ evaluators = [
     # Detects lack of details (bad_text_before should have low score)
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "detail", "normalize_by": 10},
+        config={"criteria": "detail", "normalize_by": 10, "llm": llm_client},
         prepare_data=prepare_with_input
     ),
 
     # Detects superficial analysis (bad_text_before should have low score)
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "depth", "normalize_by": 10},
+        config={"criteria": "depth", "normalize_by": 10, "llm": llm_client},
         prepare_data=prepare_with_input
     ),
 
     # Additional metrics for context
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "helpfulness", "normalize_by": 10},
+        config={"criteria": "helpfulness", "normalize_by": 10, "llm": llm_client},
         prepare_data=prepare_with_input
     ),
 
     LangChainStringEvaluator(
         "score_string",
-        config={"criteria": "coherence", "normalize_by": 10},
+        config={"criteria": "coherence", "normalize_by": 10, "llm": llm_client},
         prepare_data=prepare_with_input
     ),
 ]

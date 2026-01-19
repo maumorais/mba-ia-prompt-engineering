@@ -1,4 +1,10 @@
 """Upload dataset to LangSmith with metadata support."""
+#Incluindo a pasta superior no caminho do python, para permitir a importação de Shared
+import sys
+import os
+# Adiciona o diretório pai (7-evaluation) ao caminho de busca do Python
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from pathlib import Path
 from shared.clients import get_langsmith_client
 from shared.datasets import upload_langsmith_dataset

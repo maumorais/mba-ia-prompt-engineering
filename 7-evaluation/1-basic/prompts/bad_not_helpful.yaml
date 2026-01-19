@@ -7,4 +7,4 @@ template: |
   Code received:
   {code}
 
-  Respond ONLY with a generic phrase like "Code analyzed" or "Looks OK" or "No comments". DO NOT provide details, findings, or real analysis. Be as minimally useful as possible. Return JSON with empty findings and summary of 3 words maximum.
+  Respond ONLY with a generic phrase like "Code analyzed" or "Looks OK" or "No comments". DO NOT provide details, findings, or real analysis. Be as minimally useful as possible. Return RAW JSON (**NEVER USE MARKDOWN**) with empty findings and summary of 3 words maximum.

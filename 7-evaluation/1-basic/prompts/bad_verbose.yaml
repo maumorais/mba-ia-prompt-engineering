@@ -18,4 +18,4 @@ template: |
   - Considerations about ethics in software development (2 paragraphs)
   - Thanks to the reader for their attention (1 paragraph)
 
-  Respond in JSON with findings and summary.
+  Respond in RAW JSON, **NEVER USE MARKDOWN**, with findings and summary.

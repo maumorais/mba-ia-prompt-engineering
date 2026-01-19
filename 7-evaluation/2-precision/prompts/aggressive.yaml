@@ -25,7 +25,7 @@ template: |
 
   {code}
 
-  Return ONLY JSON in format:
+  Return ONLY RAW JSON in format, **NEVER USE MARKDOWN**:
   {{
     "findings": [
       {{"type": "<issue_type>", "line": <number>, "description": "<description>", "severity": "<critical|high|medium|low>"}}

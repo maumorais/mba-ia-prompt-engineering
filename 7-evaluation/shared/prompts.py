@@ -27,44 +27,29 @@ def load_yaml_prompt(filename: str, prompts_dir: Optional[Path] = None):
     return load_prompt(prompts_dir / filename)
 
 
-def execute_text_prompt(prompt_obj, inputs: dict, oai_client,
+def execute_text_prompt(prompt_obj, inputs: dict, llm,
                         input_key: str = "code", model: str = None,
                         temperature: float = None):
     """
-    Execute simple text prompt (PromptTemplate).
+    Execute simple text prompt (PromptTemplate) using LangChain.
 
     Args:
         prompt_obj: Loaded prompt object
         inputs: Input dictionary from dataset
-        oai_client: OpenAI client
+        llm: LangChain Chat Model (OpenAI or Google)
         input_key: Key to extract from inputs (default: "code")
-        model: Model name (default: from environment)
-        temperature: Temperature (default: from environment)
-
-    Returns:
-        {"output": str} - Model response
-
-    Example:
-        >>> result = execute_text_prompt(prompt, {"code": "..."}, client)
-        >>> print(result["output"])
+        model: Ignored (handled by llm object)
+        temperature: Optional temperature override
     """
-    from shared.clients import get_model_name, get_temperature
+    # Configure LLM with specific temperature if requested
+    configured_llm = llm
+    if temperature is not None:
+        configured_llm = llm.bind(temperature=temperature)
+    
+    chain = prompt_obj | configured_llm
+    response = chain.invoke(inputs)
 
-    # Use environment defaults if not specified
-    if model is None:
-        model = get_model_name()
-    if temperature is None:
-        temperature = get_temperature()
-
-    prompt_text = prompt_obj.format(**{input_key: inputs[input_key]})
-
-    response = oai_client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt_text}],
-        model=model,
-        temperature=temperature
-    )
-
-    return {"output": response.choices[0].message.content}
+    return {"output": response.content}
 
 
 def convert_langchain_to_openai_messages(messages):
@@ -88,45 +73,25 @@ def convert_langchain_to_openai_messages(messages):
     return openai_messages
 
 
-def execute_chat_prompt(prompt_obj, inputs: dict, oai_client,
+def execute_chat_prompt(prompt_obj, inputs: dict, llm,
                        model: str = None, temperature: float = None,
                        **format_kwargs):
     """
-    Execute chat prompt (ChatPromptTemplate).
+    Execute chat prompt (ChatPromptTemplate) using LangChain.
 
     Args:
         prompt_obj: ChatPromptTemplate object
         inputs: Input dictionary from dataset
-        oai_client: OpenAI client
-        model: Model name (default: from environment)
-        temperature: Temperature (default: from environment)
+        llm: LangChain Chat Model
+        model: Ignored
+        temperature: Ignored
         **format_kwargs: Arguments for format_messages()
 
     Returns:
         {"output": str} - Model response
-
-    Example:
-        >>> result = execute_chat_prompt(
-        ...     prompt, inputs, client,
-        ...     code=inputs['code'],
-        ...     language=inputs['language']
-        ... )
     """
-    from shared.clients import get_model_name, get_temperature
-
-    # Use environment defaults if not specified
-    if model is None:
-        model = get_model_name()
-    if temperature is None:
-        temperature = get_temperature()
-
     messages = prompt_obj.format_messages(**format_kwargs)
-    openai_messages = convert_langchain_to_openai_messages(messages)
+    
+    response = llm.invoke(messages)
 
-    response = oai_client.chat.completions.create(
-        messages=openai_messages,
-        model=model,
-        temperature=temperature
-    )
-
-    return {"output": response.choices[0].message.content}
+    return {"output": response.content}

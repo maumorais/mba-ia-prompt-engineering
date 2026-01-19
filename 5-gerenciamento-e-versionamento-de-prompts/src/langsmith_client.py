@@ -7,7 +7,12 @@ load_dotenv()
 
 client = Client()
 
+#Chamada preparada para buscar uma commit tag específica
 prompt = client.pull_prompt("agent-pull-request-creator:dev")
+
+# Chamada preparada para buscar a latest
+#prompt = client.pull_prompt("agent-pull-request-creator")
+
 model = init_chat_model("gpt-4o-mini")
 chain = prompt | model
 print(chain.invoke({

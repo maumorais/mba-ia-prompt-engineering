@@ -26,5 +26,5 @@ messages:
       - Hardcoded credentials
       - Session management issues
 
-      Return ONLY JSON in format:
+      Return ONLY RAW JSON in format, **NEVER USE MARKDOWN**:
       {{"findings":[{{"type":"<type>","line":<num>,"description":"<desc>","severity":"<critical|high|medium|low>"}}],"summary":"<summary>"}}

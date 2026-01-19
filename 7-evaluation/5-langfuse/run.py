@@ -1,13 +1,18 @@
 from datetime import datetime
+import sys
+import os
+
+# Adiciona o diretório pai (7-evaluation) ao caminho de busca do Python
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from langfuse.langchain import CallbackHandler
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from shared.clients import get_langfuse_client
+from shared.clients import get_langfuse_client, get_llm_client
 from langfuse_helpers import parse_judge_response, format_reasoning_summary
 
 # Initialize clients
 langfuse = get_langfuse_client()
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+llm = get_llm_client(model="gpt-4o-mini", temperature=0.7)
 
 # Configuration
 DATASET_NAME = "code-ds"
