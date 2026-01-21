@@ -5,6 +5,8 @@ Este repositório contém os exercícios práticos e exemplos da disciplina de P
 ## Estrutura dos capítulos
 
 ### 1-tipos-de-prompts
+[📘 Guia Técnico](./1-tipos-de-prompts/instructions.md)
+
 Fundamentos de prompt engineering com 9 técnicas essenciais:
 - Role-based prompting
 - Zero-shot e Few-shot learning
@@ -16,12 +18,16 @@ Fundamentos de prompt engineering com 9 técnicas essenciais:
 - Least-to-most decomposition
 
 ### 4-prompts-e-workflow-de-agentes
+[📘 Guia Técnico](./4-prompts-e-workflow-de-agentes/instructions.md)
+
 Implementações de workflows baseados em agentes para:
 - Análise arquitetural de código
 - Auditoria de dependências
 - Orquestração de comandos entre agentes
 
 ### 5-gerenciamento-e-versionamento-de-prompts
+[📘 Guia Técnico](./5-gerenciamento-e-versionamento-de-prompts/instructions.md)
+
 Sistema avançado de gerenciamento de prompts com:
 - Versionamento local usando YAML
 - Integração com LangSmith para colaboração
@@ -29,12 +35,16 @@ Sistema avançado de gerenciamento de prompts com:
 - Testes automatizados com pytest
 
 ### 6-prompt-enriquecido
+[📘 Guia Técnico](./6-prompt-enriquecido/instructions.md)
+
 Técnicas avançadas de enriquecimento de prompts:
 - Query expansion
 - ITER-RETGEN (Iterative Retrieval Generation)
 - Enriquecimento contextual de queries
 
 ### 7-evaluation
+[📘 Guia Técnico](./7-evaluation/instructions.md)
+
 Avaliação sistemática de prompts e LLMs:
 - Evaluators básicos (format, criteria, score, correctness, custom, embeddings)
 - Métricas de classificação (Precision, Recall, F1)
