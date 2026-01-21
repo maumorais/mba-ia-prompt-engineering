@@ -51,7 +51,10 @@ cases:
     inputs:
       changes_summary: "Atualização da documentação da API"
       files_changed: "docs/api.md, README.md"
+      issue_number: "789"
+      branch_name: "docs/update-api-docs"
       breaking_changes: "Não"
+      testing_done: "Verificação manual de markdown"
     expect_contains:
       - "Atualização da documentação da API"
       - "docs/api.md, README.md"
